@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -19,6 +19,7 @@ async function run()
   try
   {
     const productsCollection = client.db('resaleDb').collection('productsItem');
+    const bookingsCollection = client.db('resaleDb').collection('bookings');
 
     app.get('/products', async (req, res) => {
       const query = {}
@@ -32,7 +33,14 @@ async function run()
     const query = { _id: ObjectId(id) };
     const product = await productsCollection.findOne(query);
     res.send(product);
-});
+  });
+
+  app.post('/bookings', async(req, res) => {
+      const booking = req.body;
+      console.log(booking);
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+  })
 
   }
   finally{
