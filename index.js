@@ -21,6 +21,7 @@ async function run()
     const productsCollection = client.db('resaleDb').collection('productsItem');
     const bookingsCollection = client.db('resaleDb').collection('bookings');
     const usersCollection = client.db('resaleDb').collection('users');
+    const sellerProductsCollection = client.db('resaleDb').collection('sellerProducts');
 
     app.get('/products', async (req, res) => {
       const query = {}
@@ -67,6 +68,14 @@ async function run()
     const user = await usersCollection.findOne(query);
     res.send({ isSeller: user?.category === 'seller' });
 });
+
+  //check seller verification and jwt
+
+  app.post('/sellerproducts', async (req, res) => {
+    const product = req.body;
+    const result = await sellerProductsCollection.insertOne(product);
+    res.send(result);
+  });
 
   }
   finally{
