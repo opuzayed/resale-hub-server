@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const jwt = require('jsonwebtoken');
+//const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -68,14 +68,51 @@ async function run()
     const user = await usersCollection.findOne(query);
     res.send({ isSeller: user?.category === 'seller' });
 });
+// give seller admin and jwt
+app.get('/sellerproducts', async (req, res) => {
+  // const decoded = req.decoded;
+  
+  // if(decoded.email !== req.query.email){
+  //     res.status(403).send({message: 'unauthorized access'})
+  // }
+
+  let query = {};
+  if (req.query.email) {
+      query = {
+          email: req.query.email
+      }
+  }
+  const cursor = sellerProductsCollection.find(query);
+  const sellerProducts = await cursor.toArray();
+  res.send(sellerProducts);
+});
 
   //check seller verification and jwt
-
   app.post('/sellerproducts', async (req, res) => {
     const product = req.body;
     const result = await sellerProductsCollection.insertOne(product);
     res.send(result);
   });
+//check seller verification and jwt
+  app.patch('/sellerproducts/:id', async (req, res) => {
+    const id = req.params.id;
+    const status = req.body.status
+    const query = { _id: ObjectId(id) }
+    const updatedDoc = {
+        $set:{
+            status: status
+        }
+    }
+    const result = await sellerProductsCollection.updateOne(query, updatedDoc);
+    res.send(result);
+});
+//check seller verification and jwt
+app.delete('/sellerproducts/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await sellerProductsCollection.deleteOne(query);
+    res.send(result);
+});
 
   }
   finally{
