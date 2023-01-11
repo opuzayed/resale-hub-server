@@ -114,6 +114,8 @@ app.delete('/sellerproducts/:id', async (req, res) => {
     res.send(result);
 });
 
+
+
 app.get('/users/admin/:email', async (req, res) => {
   const email = req.params.email;
   const query = { email }
@@ -124,16 +126,37 @@ app.get('/users/admin/:email', async (req, res) => {
 app.get('/allbuyers', async (req, res) => {
   const query = {category:"buyer"}
   const cursor = usersCollection.find(query);
-  const products = await cursor.toArray();
-  res.send(products);
+  const buyers = await cursor.toArray();
+  res.send(buyers);
 });
 
-app.get('/users/allbuyers/:email', async (req, res) => {
-  const email = req.params.email;
-  const query = { email }
-  const user = await usersCollection.find(query).toArray();
-  res.send({ isBuyer: user?.category === 'buyer' });
+app.delete('/allbuyers/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+  const result = await usersCollection.deleteOne(query);
+  res.send(result);
 });
+app.get('/allsellers', async (req, res) => {
+  const query = {category:"seller"}
+  const cursor = usersCollection.find(query);
+  const sellers = await cursor.toArray();
+  res.send(sellers);
+});
+
+app.delete('/allsellers/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+  const result = await usersCollection.deleteOne(query);
+  res.send(result);
+});
+
+// app.get('/users/allbuyers/:email', async (req, res) => {
+//   const email = req.params.email;
+//   const query = { email }
+//   const user = await usersCollection.find(query).toArray();
+//   res.send({ isBuyer: user?.category === 'buyer' });
+// });
+
 
 
   }
