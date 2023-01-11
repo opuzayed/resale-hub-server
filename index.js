@@ -42,12 +42,34 @@ async function run()
     const usersCollection = client.db('resaleDb').collection('users');
     const sellerProductsCollection = client.db('resaleDb').collection('sellerProducts');
 
+    app.get('/jwt', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (user) {
+          const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+          return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: '' })
+    });
+
     const verifyAdmin = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
       const user = await usersCollection.findOne(query);
 
-      if (user?.role !== 'admin') {
+      if (user?.category !== 'admin') {
+          return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+  }
+
+    const verifySeller = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await usersCollection.findOne(query);
+
+      if (user?.category !== 'seller') {
           return res.status(403).send({ message: 'forbidden access' })
       }
       next();
@@ -67,24 +89,26 @@ async function run()
     res.send(product);
   });
 
+  app.get('/bookings', verifyJWT, async (req, res) => {
+    const email = req.query.email;
+    const decodedEmail = req.decoded.email;
+
+     if (email !== decodedEmail) {
+         return res.status(403).send({ message: 'forbidden access' });
+     }
+
+    const query = { email: email };
+    const bookings = await bookingsCollection.find(query).toArray();
+    res.send(bookings);
+  });
+
   app.post('/bookings', async(req, res) => {
       const booking = req.body;
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
   });
 
-  app.get('/bookings', async (req, res) => {
-    const email = req.query.email;
-    //const decodedEmail = req.decoded.email;
 
-    // if (email !== decodedEmail) {
-    //     return res.status(403).send({ message: 'forbidden access' });
-    // }
-
-    const query = { email: email };
-    const bookings = await bookingsCollection.find(query).toArray();
-    res.send(bookings);
-});
 
     app.post('/users', async (req, res) => {
       const user = req.body;
